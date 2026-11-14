@@ -169,6 +169,7 @@ int server_connection_accept(int sock)
 command_t* new_command(unsigned long key)
 {
     command_t *cmd = malloc(sizeof(command_t));
+    pthread_mutex_init(&cmd->mutex, NULL);
     cmd->key = key;
     cmd->answer_expected=0;
     
@@ -195,8 +196,6 @@ int run_login_command(command_t *cmd, answer_t **answer)
     client_data->key=cmd->key;
 
     client_data->timeline = timeline_create(client_data->key);
-    pthread_mutex_init(&client_data->mutex, NULL);
-
     /* we follow ourself */
     client_data->followers[0]=client_data;
     client_data->nb_followers=1;
@@ -247,7 +246,6 @@ int run_publish_command(command_t *cmd, answer_t **answer)
         generate_cmd_error(cmd,answer);
         return -1;
     }
-    //maybe lock here because of timeline
 
     for(i=0; i<client->nb_followers; i++){
         if(!client->followers[i]->disconnected){
@@ -284,7 +282,6 @@ int run_publish_command(command_t *cmd, answer_t **answer)
         msg_buffer = malloc(BABBLE_BUFFER_SIZE);
         
         snprintf(msg_buffer, BABBLE_BUFFER_SIZE,"%s[%ld]: { %s }\n", client->client_name, date, cmd->msg);
-        //lock here also
         add_msg_to_answer(the_answer, BABBLE_BUFFER_SIZE, msg_buffer);
         free(msg_buffer);
     }
@@ -329,15 +326,17 @@ int run_follow_command(command_t *cmd, answer_t **answer)
     }
 
 
-    //here we need to LOCK
-    //because we have counter that increases the value of followers
     if(i == f_client->nb_followers){
+        //pthread_mutex_lock(&cmd->mutex);
         f_client->followers[i]=client;
         f_client->nb_followers++;
+        //pthread_mutex_lock(&cmd->mutex);
     }
     else{
         printf("Warning: %s already follows %s\n", client->client_name, f_client->client_name);
     }
+    
+
 
     //here we need to UNlock
 
@@ -350,10 +349,7 @@ int run_follow_command(command_t *cmd, answer_t **answer)
         msg_buffer = malloc(BABBLE_BUFFER_SIZE);
         
         snprintf(msg_buffer, BABBLE_BUFFER_SIZE,"%s[%ld]: follow %s\n", client->client_name, time(NULL)-server_start, f_client->client_name);
-        
-        //here we might also have to lock() because with many executor threads the commands
-        // are executing chaotic and maybe at the same time so many threads are working
-        //with msg_buffer
+
         add_msg_to_answer(the_answer, BABBLE_BUFFER_SIZE, msg_buffer);
 
         free(msg_buffer);

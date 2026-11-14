@@ -346,9 +346,9 @@ int main(int argc, char *argv[])
     pthread_t executor_threads[BABBLE_EXECUTOR_THREADS];
 
     for(int i = 0; i < BABBLE_EXECUTOR_THREADS; i++){
-        fprintf(stderr, "inside for loop before pthreadcreate\n");
+        fprintf(stderr, "inside for loop before pthread-create\n");
         thread_executor_error = pthread_create(&executor_threads[i], NULL, executor_thread, NULL);
-        fprintf(stderr, "inside for loop after pthreadcreate\n");
+        fprintf(stderr, "inside for loop after pthread-create\n");
 
         if( thread_executor_error != 0){
             fprintf(stderr, "Error -- Could not create executor thread. \n");
@@ -383,8 +383,11 @@ int main(int argc, char *argv[])
             continue;
         }
         *client_sockfd = newsockfd;
+        fprintf(stderr, "before communicator pthread-create\n");
 
         thread_error = pthread_create(&communication_thread_id, NULL, communication_thread, client_sockfd);
+
+        fprintf(stderr, "AFTER communicator pthread-create\n");
 
         if(thread_error!=0){
             fprintf(stderr, "Error -- Could not create communication thread. \n");
