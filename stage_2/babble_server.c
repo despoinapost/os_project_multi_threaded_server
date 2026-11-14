@@ -298,8 +298,9 @@ int main(int argc, char *argv[])
     //answer_t *answer=NULL;
 
     //................................
-    pthread_t executor_thread_id;
+    //pthread_t executor_thread_id;
     int thread_error;
+    int thread_executor_error;
 
     pthread_t communication_thread_id;
     int *client_sockfd;
@@ -340,12 +341,23 @@ int main(int argc, char *argv[])
     }
 
     //Create the executor thread
-    thread_error = pthread_create(&executor_thread_id, NULL, executor_thread, NULL);
-    if(thread_error !=0)
-    {
-        fprintf(stderr, "Error -- Could not create executor thread. \n");
-        return -1;
+    //here we have new changes since we work with several executor threads
+
+    pthread_t executor_threads[BABBLE_EXECUTOR_THREADS];
+
+    for(int i = 0; i < BABBLE_EXECUTOR_THREADS; i++){
+        fprintf(stderr, "inside for loop before pthreadcreate\n");
+        thread_executor_error = pthread_create(&executor_threads[i], NULL, executor_thread, NULL);
+        fprintf(stderr, "inside for loop after pthreadcreate\n");
+
+        if( thread_executor_error != 0){
+            fprintf(stderr, "Error -- Could not create executor thread. \n");
+        }
     }
+
+
+    //pthread_create(&executor_thread_id, NULL, executor_thread, NULL);
+    
     //.................................................................................
     
     if((sockfd = server_connection_init(portno)) == -1){

@@ -17,7 +17,7 @@
 
 #define BABBLE_TIMELINE_MSIZE 4
 
-#define BABBLE_EXECUTOR_THREADS 100000
+#define BABBLE_EXECUTOR_THREADS 5
 
 
 /* defines the size of the prod-cons buffer */
