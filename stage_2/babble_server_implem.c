@@ -169,7 +169,7 @@ int server_connection_accept(int sock)
 command_t* new_command(unsigned long key)
 {
     command_t *cmd = malloc(sizeof(command_t));
-    pthread_mutex_init(&cmd->mutex, NULL);
+    //pthread_mutex_init(&cmd->mutex, NULL);
     cmd->key = key;
     cmd->answer_expected=0;
     
@@ -194,6 +194,7 @@ int run_login_command(command_t *cmd, answer_t **answer)
     strncpy(client_data->client_name, cmd->msg, BABBLE_ID_MSIZE);
     client_data->sockfd = cmd->sockfd;
     client_data->key=cmd->key;
+    pthread_mutex_init(&client_data->mutex, NULL);
 
     client_data->timeline = timeline_create(client_data->key);
     /* we follow ourself */
@@ -263,18 +264,17 @@ int run_publish_command(command_t *cmd, answer_t **answer)
             if(client->followers[i]->disconnected){
                 /* remove the client from the set of followers */
                 printf("### Client %s removed disconnected client %s from its list of followers\n", client->client_name, client->followers[i]->client_name);
-                //pthread_mutex_lock(&cmd->mutex);
+                pthread_mutex_lock(&client->mutex);
                 client->followers[i] = client->followers[client->nb_followers - 1];
                 client->nb_followers--;
                 /* decrease the index to go through the follower we moved
                    in the array */
                 i--;
-                //pthread_mutex_unlock(&cmd->mutex);
+                pthread_mutex_unlock(&client->mutex);
             }
         }
     }
     
-    //unlock here
     printf("### Client %s published { %s } at date %ld\n", client->client_name, cmd->msg, date);
 
     if(cmd->answer_expected){
@@ -327,19 +327,15 @@ int run_follow_command(command_t *cmd, answer_t **answer)
 
 
     if(i == f_client->nb_followers){
-        //pthread_mutex_lock(&cmd->mutex);
+        //pthread_mutex_lock(&client->mutex);
         f_client->followers[i]=client;
         f_client->nb_followers++;
-        //pthread_mutex_lock(&cmd->mutex);
+        //pthread_mutex_unlock(&client->mutex);    
     }
     else{
         printf("Warning: %s already follows %s\n", client->client_name, f_client->client_name);
     }
     
-
-
-    //here we need to UNlock
-
 
     /* generate answer to client */
     if(cmd->answer_expected){

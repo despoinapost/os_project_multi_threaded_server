@@ -27,7 +27,6 @@ typedef struct command{
     unsigned long key;
     char msg[BABBLE_PUBLICATION_MSIZE];
     int answer_expected;   /* answer sent only if set */
-    pthread_mutex_t mutex;
 } command_t;
 
 typedef struct client_bundle{
@@ -40,6 +39,7 @@ typedef struct client_bundle{
     unsigned int nb_followers;
     unsigned int disconnected; /* set to 1 when client has
                                 * disconnected */
+    pthread_mutex_t mutex;
 
 } client_bundle_t;
 
