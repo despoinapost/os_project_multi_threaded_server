@@ -248,6 +248,7 @@ int run_publish_command(command_t *cmd, answer_t **answer)
         return -1;
     }
 
+    pthread_mutex_lock(&client->mutex);
     for(i=0; i<client->nb_followers; i++){
         if(!client->followers[i]->disconnected){
             date = timeline_insert(client->followers[i]->timeline, client, cmd->msg);
@@ -264,17 +265,18 @@ int run_publish_command(command_t *cmd, answer_t **answer)
             if(client->followers[i]->disconnected){
                 /* remove the client from the set of followers */
                 printf("### Client %s removed disconnected client %s from its list of followers\n", client->client_name, client->followers[i]->client_name);
-                pthread_mutex_lock(&client->mutex);
+                
                 client->followers[i] = client->followers[client->nb_followers - 1];
                 client->nb_followers--;
                 /* decrease the index to go through the follower we moved
                    in the array */
                 i--;
-                pthread_mutex_unlock(&client->mutex);
             }
         }
     }
     
+    pthread_mutex_unlock(&client->mutex);
+
     printf("### Client %s published { %s } at date %ld\n", client->client_name, cmd->msg, date);
 
     if(cmd->answer_expected){
@@ -316,7 +318,7 @@ int run_follow_command(command_t *cmd, answer_t **answer)
         return 0;
     }
     
-
+    pthread_mutex_lock(&f_client->mutex);
     /* if client is not already followed, add it */
     int i=0;
     for(i=0; i<f_client->nb_followers; i++){
@@ -327,15 +329,15 @@ int run_follow_command(command_t *cmd, answer_t **answer)
 
 
     if(i == f_client->nb_followers){
-        //pthread_mutex_lock(&client->mutex);
+        
         f_client->followers[i]=client;
         f_client->nb_followers++;
-        //pthread_mutex_unlock(&client->mutex);    
     }
     else{
         printf("Warning: %s already follows %s\n", client->client_name, f_client->client_name);
     }
     
+    pthread_mutex_unlock(&f_client->mutex);    
 
     /* generate answer to client */
     if(cmd->answer_expected){

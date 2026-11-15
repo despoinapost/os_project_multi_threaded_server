@@ -4,10 +4,19 @@ CFLAGS =   -g  -Wall
 LDFLAGS = -lpthread
 
 ## add the memory sanitizer
-# CFLAGS += -fsanitize=address
-# LDFLAGS += -fsanitize=address
+#CFLAGS += -fsanitize=address
+#LDFLAGS += -fsanitize=address
 
 TARGETS = babble_server.run babble_client.run stress_test.run follow_test.run performance_test.run
+
+tsan: CFLAGS += -fsanitize=thread
+tsan: LDFLAGS += -fsanitize=thread
+tsan: clean all
+
+asan: CFLAGS += -fsanitize=address
+asan: LDFLAGS += -fsanitize=address
+asan: clean all
+
 
 # source files the server depends on
 SERVER_DEPS= 	babble_utils.c \
