@@ -15,6 +15,14 @@ typedef struct command_buffer{
     pthread_cond_t not_full; //notify a communication thread (producer) that there is space in the buffer to add a new command
 }command_buffer_t;
 
+typedef struct command_counter{
+    pthread_mutex_t m_command;
+    int com_counter;
+    pthread_cond_t com_cond;
+}command_counter_t;
+
+extern command_counter_t command_counter;
+
 int command_buffer_init(command_buffer_t *buffer);
 int command_buffer_put(command_buffer_t *buffer, command_t *next_command);
 int command_buffer_get(command_buffer_t *buffer, command_t **next_command);

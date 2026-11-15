@@ -15,6 +15,8 @@
 #include "babble_communication.h"
 #include "babble_registration.h"
 #include "babble_timeline.h"
+#include "command_buffer.h"
+
 
 time_t server_start;
 
@@ -169,10 +171,8 @@ int server_connection_accept(int sock)
 command_t* new_command(unsigned long key)
 {
     command_t *cmd = malloc(sizeof(command_t));
-    //pthread_mutex_init(&cmd->mutex, NULL);
     cmd->key = key;
-    cmd->answer_expected=0;
-    
+    cmd->answer_expected = 0;
     return cmd;
 }
 
@@ -422,7 +422,11 @@ int run_rdv_command(command_t *cmd, answer_t **answer)
         generate_cmd_error(cmd, answer);
         return -1;
     }
-    
+    pthread_mutex_lock(&command_counter.m_command);
+    while(command_counter.com_counter != 0){
+        pthread_cond_wait(&command_counter.com_cond, &command_counter.m_command);
+    }
+    pthread_mutex_unlock(&command_counter.m_command);
     /* generate answer to client */
     the_answer = alloc_answer(client->key);
 

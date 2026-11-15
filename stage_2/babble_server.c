@@ -273,6 +273,15 @@ static void *executor_thread(void *arg)
             fprintf(stderr, "Error -- Could not send answer to client %lu. \n", answer->key);
         }
 
+        pthread_mutex_lock(&command_counter.m_command);
+        if(command->cid != RDV && command->cid != UNREGISTER){
+            command_counter.com_counter --;
+        }
+        if(command_counter.com_counter == 0){
+            pthread_cond_broadcast(&command_counter.com_cond);
+        }
+        pthread_mutex_unlock(&command_counter.m_command);
+
         free_answer(answer);
         free(command);
     }

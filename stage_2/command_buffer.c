@@ -5,6 +5,12 @@
 // Initialize the command buffer before the communication threads start producing commands 
 // and the executor thread starts consuming them.
 
+command_counter_t command_counter = {
+    PTHREAD_MUTEX_INITIALIZER,
+    0,
+    PTHREAD_COND_INITIALIZER
+};
+
 int command_buffer_init(command_buffer_t *buffer)
 {
     if(buffer == NULL){
@@ -59,6 +65,12 @@ int command_buffer_put(command_buffer_t *buffer, command_t *next_command)
     buffer->commands[buffer->in] = next_command;
     buffer->in = (buffer->in + 1) % BABBLE_PRODCONS_SIZE;
     buffer->count++;
+
+    pthread_mutex_lock(&command_counter.m_command);
+    if(next_command->cid != RDV && next_command->cid != UNREGISTER){
+        command_counter.com_counter ++;
+    }
+    pthread_mutex_unlock(&command_counter.m_command);
 
     pthread_cond_signal(&buffer->not_empty);
     
