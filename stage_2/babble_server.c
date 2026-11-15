@@ -355,9 +355,9 @@ int main(int argc, char *argv[])
     pthread_t executor_threads[BABBLE_EXECUTOR_THREADS];
 
     for(int i = 0; i < BABBLE_EXECUTOR_THREADS; i++){
-        fprintf(stderr, "inside for loop before pthread-create\n");
+        //fprintf(stderr, "inside for loop before pthread-create\n");
         thread_executor_error = pthread_create(&executor_threads[i], NULL, executor_thread, NULL);
-        fprintf(stderr, "inside for loop after pthread-create\n");
+        //fprintf(stderr, "inside for loop after pthread-create\n");
 
         if( thread_executor_error != 0){
             fprintf(stderr, "Error -- Could not create executor thread. \n");

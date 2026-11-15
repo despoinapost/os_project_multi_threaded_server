@@ -257,15 +257,13 @@ int run_publish_command(command_t *cmd, answer_t **answer)
             client_disconnected = 1;
         }
     }
-    
-    
     /* removing disconnected clients from the list of followers */
     if(client_disconnected){
         for(i=0; i<client->nb_followers; i++){
             if(client->followers[i]->disconnected){
                 /* remove the client from the set of followers */
-                printf("### Client %s removed disconnected client %s from its list of followers\n", client->client_name, client->followers[i]->client_name);
-                
+                printf("### Client %s removed disconnected client %s from its list of followers\n", 
+                    client->client_name, client->followers[i]->client_name);
                 client->followers[i] = client->followers[client->nb_followers - 1];
                 client->nb_followers--;
                 /* decrease the index to go through the follower we moved
@@ -274,7 +272,6 @@ int run_publish_command(command_t *cmd, answer_t **answer)
             }
         }
     }
-    
     pthread_mutex_unlock(&client->mutex);
 
     printf("### Client %s published { %s } at date %ld\n", client->client_name, cmd->msg, date);
@@ -326,8 +323,6 @@ int run_follow_command(command_t *cmd, answer_t **answer)
             break;
         }
     }
-
-
     if(i == f_client->nb_followers){
         
         f_client->followers[i]=client;
